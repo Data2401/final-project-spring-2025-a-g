@@ -116,25 +116,4 @@ ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
   theme_minimal()
 ```
 
----
 
-## **How has the age-adjusted death rate for cancer changed over time?**
-```{r}
-cancer_rate_trend <- cancer_data %>%
-  filter(Cause.Name != "All causes") %>%
-  group_by(Year) %>%
-  summarise(Avg_Age_Adjusted_Death_Rate = mean(Age.adjusted.Death.Rate, na.rm = TRUE))
-
-print(cancer_rate_trend)
-
-# Plotting
-ggplot(cancer_rate_trend, aes(x = Year, y = Avg_Age_Adjusted_Death_Rate)) +
-  geom_line(color = "darkblue", size = 1.2) +
-  geom_point(color = "black") +
-  labs(title = "Average Age-Adjusted Cancer Death Rate Over Time",
-       x = "Year",
-       y = "Age-Adjusted Death Rate (per 100,000 people)") +
-  theme_minimal()
-```
-
----
