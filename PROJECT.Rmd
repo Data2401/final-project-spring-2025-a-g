@@ -18,20 +18,11 @@ The data we gathered comes from the National Center for Health Statistics (NCHS)
 To protect the privacy of the victims, the specific locations of the incidents are not identified, but rather addresses are shown at the block level. Several variables are included in this data such as Year, X113 cause name, cause name, state, deaths, and age adjusted death rate. 
 
 
-
-# QUESTIONS
-1. What are the leading causes of death since 2001?
-2.e
-3.e
-4.e
-5.e
-
-
 # QUESTIONS
 1. What are the leading causes of death since 2001?
 2. Which state had the most amount of deaths in the US?
-3. 
-4. b
+3. How has the cause of heart disease deaths changed over time?
+4. How has the cause of cancer deaths changed over time?
 5. c
 
 # Unfiltered Data
@@ -62,7 +53,7 @@ glimpse(data)
 ## **Top Causes of Death Since 2001**
 ```{r}
 top_causes <- data %>%
-  filter(Cause.Name != "All causes") %>% 
+  filter(Cause.Name != "All causes", State != "United States") %>% 
   group_by(Cause.Name) %>%
   summarise(total_deaths = sum(Deaths)) %>%
   arrange(desc(total_deaths))
@@ -79,27 +70,75 @@ ggplot(top_causes, aes(x = total_deaths, y = reorder(Cause.Name, total_deaths)))
 ## **Total Deaths in Each State**
 
 ```{r}
-TOTAL_DEATHS_BY_STATE <- data %>% 
-  select(State,Deaths,Cause.Name) %>%
+library(dplyr)
+library(ggplot2)
+
+death_totals <- data %>% 
+  select(State, Deaths, Cause.Name) %>%
   filter(State != 'United States', Cause.Name != 'All causes') %>%
   group_by(State) %>%
-  summarize(sum(Deaths)) %>%
-  ggplot(aes( x= `sum(Deaths)`, y = State)) + geom_col() + labs(
-    x = 'Deaths',
-    y = 'States',
-    title = 'Total Amount of Deaths in Each State Since 2001'
-  )
-TOTAL_DEATHS_BY_STATE
+  summarize(Total_Deaths = sum(Deaths, na.rm = TRUE))
+
+death_totals <- death_totals %>%
+  mutate(Color = ifelse(State == "California", "California", "Other"))
+
+TOTAL_DEATHS_BY_STATE <- ggplot(death_totals, aes(x = Total_Deaths, y = reorder(State, Total_Deaths), fill = Color)) +
+  geom_col() +
+  scale_fill_manual(values = c("California" = "red")) +
+  labs(
+    x = "Deaths",
+    y = "States",
+    title = "Total Amount of Deaths in Each State Since 2001"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")  # Optional: hide legend
+
+print(TOTAL_DEATHS_BY_STATE)
 ```
 
 
+## **How has cancer deaths changed over time?**
 ```{r}
-#NOTICED MANY DEATHS IN CALIFORNIA AND GOING TO LOOK INTO IT
+# Filtering the cancer data
+cancer_data <- subset(data, grepl("cancer", Cause.Name, ignore.case = TRUE))
 
-CALIFORNIA <- NEW_DATA %>% select(State, Causes,`Number of Deaths`) %>% group_by(Causes) %>% summarize(sum(`Number of Deaths`))
-CALIFORNIA
+# Number of cancer deaths each year since 2001
+cancer_trend <- cancer_data %>%
+  group_by(Year) %>%
+  summarise(Total_Deaths = sum(Deaths))
+
+print(cancer_trend)
+
+# Plotting the rate of cancer deaths over time
+library(ggplot2)
+ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
+  geom_line(color = "aquamarine3", size = 1.2) +
+  geom_point(color = "black") +
+  labs(title = "Trend of Cancer Deaths Over Time",
+       x = "Year",
+       y = "Total Cancer Deaths") +
+  theme_minimal()
 ```
 
 
+How has the age-adjusted death rate for cancer changed over time?
+```{r}
+# Group by year and calculated the average (or weighted) age-adjusted death rate
+cancer_rate_trend <- cancer_data %>%
+  filter(Cause.Name != "All causes") %>%
+  group_by(Year) %>%
+  summarise(Avg_Age_Adjusted_Death_Rate = mean(Age.adjusted.Death.Rate, na.rm = TRUE))
+
+print(cancer_rate_trend)
+
+# Plotting
+ggplot(cancer_rate_trend, aes(x = Year, y = Avg_Age_Adjusted_Death_Rate)) +
+  geom_line(color = "darkblue", size = 1.2) +
+  geom_point(color = "black") +
+  labs(title = "Average Age-Adjusted Cancer Death Rate Over Time",
+       x = "Year",
+       y = "Age-Adjusted Death Rate (per 100,000 people)") +
+  theme_minimal()
+```
 
 
