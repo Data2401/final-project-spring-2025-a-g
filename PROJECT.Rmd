@@ -29,7 +29,7 @@ To protect the privacy of the victims, the specific locations of the incidents a
 
 # Unfiltered Data
 
-```{r}
+```{r echo = FALSE}
 library(tidyverse)
 library(dplyr)
 data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States (1).csv")
@@ -48,7 +48,7 @@ glimpse(data)
 ---
 
 ## **Leading Causes of Death Since 2001**
-```{r}
+```{r echo = FALSE}
 # Filtering the data and removing "United States" from the column named 'States'
 top_causes <- data %>%
   filter(Cause.Name != "All causes", State != "United States") %>% 
@@ -67,7 +67,7 @@ ggplot(top_causes, aes(x = total_deaths, y = reorder(Cause.Name, total_deaths)))
 ---
 
 ## **Total Deaths in Each State**
-```{r}
+```{r echo = FALSE}
 library(dplyr)
 library(ggplot2)
 
@@ -76,6 +76,7 @@ death_totals <- data %>%
   filter(State != 'United States', Cause.Name != 'All causes') %>%
   group_by(State) %>%
   summarize(Total_Deaths = sum(Deaths, na.rm = TRUE))
+
 
 # Highlighting California since it has the most deaths
 death_totals <- death_totals %>%
@@ -99,7 +100,7 @@ print(TOTAL_DEATHS_BY_STATE)
 
 ## **Leading Cause of Deaths in California **
 
-```{r}
+```{r echo=FALSE}
 Leading_cause <- data %>%
   filter(State == 'California', Cause.Name != 'All causes') %>%
   group_by(Cause.Name) %>%
@@ -110,7 +111,8 @@ Leading_cause <- data %>%
     x = "Cause Name",
     y = "Total Number of Deaths"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis( angle = 80))
 
 Leading_cause
 ```
@@ -119,11 +121,11 @@ Leading_cause
 
 ## **How has the number of heart disease deaths changed over time?**
 
-```{r}
+```{r echo = FALSE}
 # Filtering the heart disease data
 heart_data <- subset(data, grepl("Heart disease", Cause.Name, ignore.case = TRUE))
 
-# Number of heart disease deaths each year since 2001
+# Number of heart disease deaths each year since 1999
 heart_trend <- heart_data %>%
   group_by(Year) %>%
   summarise(Total_Heart_Deaths = sum(Deaths, na.rm = TRUE))
@@ -153,7 +155,7 @@ HEART_DISEASE
 ---
 
 ## **How has the number of cancer deaths changed over time?**
-```{r}
+```{r echo = FALSE}
 # Filtering the cancer data
 cancer_data <- subset(data, grepl("cancer", Cause.Name, ignore.case = TRUE))
 
@@ -174,5 +176,28 @@ ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
        y = "Total Cancer Deaths") +
   theme_minimal()
 ```
+```{r}
+#HIGHER PERCENTAGE = OLDER 
 
+PERCENTAGE <- data %>%
+  select(Age.adjusted.Death.Rate,Cause.Name, State) %>%
+  filter(Cause.Name != 'All causes') %>%
+  ggplot(aes( y = Cause.Name, x = Age.adjusted.Death.Rate, color = Cause.Name)) + geom_point(alpha = .5) 
+PERCENTAGE
+
+HEART <- data %>% select(Year, State, Age.adjusted.Death.Rate) %>%
+  filter(State != 'United States') %>%
+  ggplot(aes(y = State, x = Age.adjusted.Death.Rate, color = Year)) + geom_point()
+HEART
+
+#AVERAGE DEATHS BY EACH STATE 
+
+AVG <-  data %>%
+  filter(Cause.Name == 'All causes', State != 'United States', Year == 2002) %>%
+  group_by(State) %>%
+  summarize(AVG = (Deaths/100000) * 100)
+AVG 
+
+
+```
 
