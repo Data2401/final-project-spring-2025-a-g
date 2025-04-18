@@ -16,11 +16,9 @@ knitr::opts_chunk$set(echo = TRUE)
 - The data was gathered from:
   - **National Center for Health Statistics (NCHS)** – *Leading Causes of Death in the U.S.*
   - **City of Chicago** – *Reported crime incidents*
-
 - The **NCHS dataset** includes:
   - Mortality statistics across various U.S. states over multiple years
   - *Excludes murder* from the listed causes of death
-
 - To ensure victim privacy:
   - Incident locations are provided at the **block level**, not exact addresses
 
@@ -38,15 +36,13 @@ knitr::opts_chunk$set(echo = TRUE)
 8. What is the age-adjusted death rate for heart disease?
 
 
-# Unfiltered Data
-
-```{r echo= FALSE}
+```{r echo = FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(dplyr)
 data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States (1).csv")
-glimpse(data)
 ```
 
+---
 
 # Variables in the dataset:
   - Year: `Year in which the incident took place.`
@@ -58,10 +54,9 @@ glimpse(data)
 
 ---
 
-
-
 ## **Leading Causes of Death Since 2001**
-```{r echo=FALSE}
+
+```{r echo = FALSE}
 # Filtering the data and removing "United States" from the column named 'States'
 top_causes <- data %>%
   filter(Cause.Name != "All causes", State != "United States") %>% 
@@ -82,7 +77,8 @@ CLRD stands for Chronic Lower Respiratory Diseases.
 ---
 
 ## **Total Deaths in Each State**
-```{r echo=FALSE}
+
+```{r echo = FALSE}
 library(dplyr)
 library(ggplot2)
 
@@ -91,6 +87,7 @@ death_totals <- data %>%
   filter(State != 'United States', Cause.Name != 'All causes') %>%
   group_by(State) %>%
   summarize(Total_Deaths = sum(Deaths, na.rm = TRUE))
+
 
 # Highlighting California since it has the most deaths
 death_totals <- death_totals %>%
@@ -125,7 +122,8 @@ Leading_cause <- data %>%
     x = "Cause Name",
     y = "Total Number of Deaths"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis( angle = 80))
 
 Leading_cause
 ```
@@ -134,16 +132,27 @@ Leading_cause
 
 ## **How has the number of heart disease deaths changed over time?**
 
-```{r echo=FALSE}
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(kableExtra)
+
 # Filtering the heart disease data
 heart_data <- subset(data, grepl("Heart disease", Cause.Name, ignore.case = TRUE))
 
-# Number of heart disease deaths each year since 2001
+# Number of heart disease deaths each year since 1999
 heart_trend <- heart_data %>%
   group_by(Year) %>%
   summarise(Total_Heart_Deaths = sum(Deaths, na.rm = TRUE))
 
-print(heart_trend)
+heart_trend %>%
+  mutate(Total_Heart_Deaths = format(Total_Heart_Deaths, big.mark = ",")) %>%
+  kable(col.names = c("Year", "Total Deaths")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "4cm", bold = TRUE) %>%
+  column_spec(2, width = "4cm")        
 
 # Number of heart disease deaths each year since 2001
 HEART_DISEASE <- data %>% 
@@ -168,7 +177,11 @@ HEART_DISEASE
 ---
 
 ## **How has the number of cancer deaths changed over time?**
-```{r echo=FALSE}
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+library(kableExtra)
+
 # Filtering the cancer data
 cancer_data <- subset(data, grepl("cancer", Cause.Name, ignore.case = TRUE))
 
@@ -177,7 +190,18 @@ cancer_trend <- cancer_data %>%
   group_by(Year) %>%
   summarise(Total_Deaths = sum(Deaths))
 
-print(cancer_trend)
+library(kableExtra)
+
+cancer_trend %>%
+  mutate(Total_Deaths = format(Total_Deaths, big.mark = ",")) %>%
+  kable(col.names = c("Year", "Total Deaths")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "4cm", bold = TRUE) %>%
+  column_spec(2, width = "4cm")                 
 
 # Plotting the rate of cancer deaths over time
 library(ggplot2)
@@ -192,14 +216,87 @@ ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
 
 ---
 
+```{r echo = FALSE}
+#HIGHER PERCENTAGE = SUGGESTS AN OLDER POPULATION
+
+PERCENTAGE <- data %>%
+  select(Age.adjusted.Death.Rate,Cause.Name, State) %>%
+  filter(Cause.Name != 'All causes') %>%
+  ggplot(aes( y = Cause.Name, x = Age.adjusted.Death.Rate, color = Cause.Name)) + geom_point(alpha = .5) +
+  labs(
+    title = "Age-Adjusted Death Rates by Cause",
+    x = "Age Adjusted Death Rate",
+    y = "Causes"
+  )
+PERCENTAGE
+
+HEART <- data %>% select(Year, State, Age.adjusted.Death.Rate) %>%
+  filter(State != 'United States') %>%
+  ggplot(aes(y = State, x = Age.adjusted.Death.Rate, color = Year)) + geom_point() +
+  labs(
+    title = "Heart Disease Death Rates Across States",
+    x = "Age Adjusted Death Rate",
+    y = "State"
+  )
+HEART
+
+#AVERAGE DEATHS BY EACH STATE 
+
+AVG <-  data %>%
+  filter(Cause.Name == 'All causes', State != 'United States', Year == 2002) %>%
+  group_by(State) %>%
+  summarize(AVG = (Deaths/100000) * 100)
+AVG 
+
+```
+  
+---
+
 # We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
 
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(ggplot2)
 library(patchwork)
 
-# Plot 1: Raw Deaths by Cause
+all_causes <- data %>%
+  filter(Cause.Name == "All causes") %>%
+  select(State, Year, TotalDeaths = Deaths)
+
+known_cause_totals <- data %>%
+  filter(Cause.Name != "All causes") %>%
+  group_by(State, Year) %>% 
+  summarise(KnownCauseDeaths = sum(Deaths), .groups = "drop")
+
+residual_deaths <- all_causes %>%
+  left_join(known_cause_totals, by = c("State", "Year")) %>%
+  mutate(UnclassifiedDeaths = TotalDeaths - KnownCauseDeaths)
+
+
+residual_deaths %>%
+  mutate(
+    UnclassifiedDeaths = TotalDeaths - KnownCauseDeaths,
+    across(c(TotalDeaths, KnownCauseDeaths, UnclassifiedDeaths), 
+           ~ format(., big.mark = ","))
+  ) %>% 
+  select(State, Year, TotalDeaths, KnownCauseDeaths, UnclassifiedDeaths) %>%
+  head(10) %>% 
+  kable(
+    col.names = c("State", "Year", "Total Deaths", "Explained Deaths", "Unexplained Deaths"),
+    align = c("l", "c", "r", "r", "r")
+  ) %>% 
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "3cm", bold = TRUE) %>%
+  column_spec(2, width = "2cm") %>%
+  column_spec(3:5, width = "3cm")
+      
+
+
+# Plot 1: Deaths by known causes
 plot1 <- data %>% 
   filter(State != "United States", Cause.Name != "All causes") %>% 
   ggplot(aes(x = Year, y = Deaths, fill = Cause.Name)) +
@@ -207,36 +304,34 @@ plot1 <- data %>%
   labs(
     title = "Deaths by Cause and Year in U.S. States",
     x = "Year",
-    y = "Deaths"
-  ) +
-  theme_minimal() +
-  scale_x_discrete(guide = guide_axis(angle = 80)) +
-  theme(legend.position = 'none')
-
-# Plot 2: Unexplained Deaths After Subtracting Each Cause (Labeled as "All Causes")
-all_causes <- data %>%
-  filter(Cause.Name == "All causes") %>%
-  select(State, Year, TotalDeaths = Deaths)
-
-cause_data <- data %>%
-  filter(Cause.Name != "All causes") %>%
-  left_join(all_causes, by = c("State", "Year")) %>%
-  mutate(Difference = TotalDeaths - Deaths)
-
-plot2 <- ggplot(cause_data, aes(x = Year, y = Difference, fill = Cause.Name)) +
-  geom_col(position = "stack") +
-  labs(
-    title = "Unexplained Deaths After Subtracting Known Causes",
-    x = "Year",
     y = "Deaths",
     fill = "Cause of Death"
   ) +
   theme_minimal() +
   scale_x_discrete(guide = guide_axis(angle = 80)) +
-  theme(legend.position = 'none')
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 2))  
 
-plot1 + plot2 + plot_layout(guides = 'collect', ncol = 2, heights = c(1, 1.5)) + 
-  plot_annotation(tag_levels = 'A')
+# Plot 2: Unexplained deaths
+plot2 <- residual_deaths %>% 
+  filter(State != "United States") %>% 
+  ggplot(aes(x = Year, y = UnclassifiedDeaths, fill = State)) +
+  geom_col(position = "stack") +
+  labs(
+    title = "Unexplained Deaths",
+    x = "Year",
+    y = "Deaths",
+    fill = "State"
+  ) +
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis(angle = 80)) +
+  theme(legend.position = "none")  
+
+combined <- (plot1 + plot2) +
+  plot_layout(ncol = 2)
+
+final_plot <- combined + plot_annotation(tag_levels = 'A')
+final_plot
 ```
 
 ---
@@ -255,7 +350,7 @@ Older populations naturally have higher death rates so comparing raw death rates
 
 # What is the death rate by cause and state?
 
-```{r echo = FALSE}
+```{r echo = FALSE, warning=FALSE, message=FALSE}
 library(plotly)
 p <- data %>%   filter(State !="United States", Cause.Name != "All causes") %>% 
   group_by(State, Cause.Name) %>% summarise(RatebyState = mean(Age.adjusted.Death.Rate)) %>% 
@@ -291,4 +386,6 @@ ggplot(heart_disease_data, aes(x = as.factor(Year), y = reorder(State, -Age.adju
   )
 
 ```
+
+
 
