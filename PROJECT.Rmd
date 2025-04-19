@@ -1,5 +1,5 @@
 ---
-title: " DATA PROJECT"
+title: "DATA PROJECT"
 author: "Angelica Gamboa and Gwendolyn Espinoza"
 date: "2025-03-28"
 output:
@@ -8,13 +8,16 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 # INTRODUCTION
-The data we gathered comes from the National Center for Health Statistics (NCHS), specifically the Leading Causes of Death in the United States dataset and reported crime incidents from the City of Chicago.The NCHS dataset provided us with information on the mortality statistics across various states throughout the years with the exception of murder. 
 
-To protect the privacy of the victims, the specific locations of the incidents are not identified, but rather addresses are shown at the block level. Several variables are included in this data such as Year, X113 cause name, cause name, state, deaths, and age adjusted death rate. 
+- The data was gathered from:
+  - **National Center for Health Statistics (NCHS)** – *Leading Causes of Death in the U.S.*
+- The **NCHS dataset** includes:
+  - Mortality statistics across various U.S. states over multiple years
+  - *Excludes murder* from the listed causes of death
 
 ---
 
@@ -25,29 +28,31 @@ To protect the privacy of the victims, the specific locations of the incidents a
 3. What was the leading cause of death in California?
 4. How has the cause of heart disease deaths changed over time?
 5. How has the cause of cancer deaths changed over time?
+6. We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
+7. What is the death rate by cause and state?
+8. What is the age-adjusted death rate for heart disease?
 
 
-# Unfiltered Data
-
-```{r echo = FALSE}
+```{r echo = FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(dplyr)
 data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States (1).csv")
-glimpse(data)
 ```
 
-# Data Key Terms
+---
 
-**Year**: Year in which the incident took place.                   
-**X113.Cause.Name**: The full, official name of the cause of death classified by the NCHS.         
-**Cause.Name**: A broader label for the cause of death.               
-**State**: The U.S. state where the data was collected.                  
-**Deaths**: The total number of deaths reported for a specific cause of death.
-**Age.adjusted.Death.Rate**: The death rate per 100,000 people, adjusted per age group for fair comparison. 
+# Variables in the dataset:
+  - Year: `Year in which the incident took place.`
+  - X113 cause name: `The full, official name of the cause of death classified by the NCHS.`
+  - Cause name: `A broader label for the cause of death.`
+  - State: `The U.S. state where the data was collected.`
+  - Deaths: `The total number of deaths reported for a specific cause of death.`
+  - Age-adjusted death rate: `The death rate per 100,000 people, adjusted per age group for fair comparison.`
 
 ---
 
 ## **Leading Causes of Death Since 2001**
+
 ```{r echo = FALSE}
 # Filtering the data and removing "United States" from the column named 'States'
 top_causes <- data %>%
@@ -64,9 +69,12 @@ ggplot(top_causes, aes(x = total_deaths, y = reorder(Cause.Name, total_deaths)))
        y = 'Cause of Death')
 ```
 
+CLRD stands for Chronic Lower Respiratory Diseases.
+
 ---
 
 ## **Total Deaths in Each State**
+
 ```{r echo = FALSE}
 library(dplyr)
 library(ggplot2)
@@ -119,9 +127,36 @@ Leading_cause
 
 ---
 
-## **How has the number of heart disease deaths changed over time?**
+## Changes Throughout the Years
 
 ```{r echo = FALSE}
+#HIGHER PERCENTAGE = SUGGESTS AN OLDER POPULATION
+
+
+#ALL DISEASES SEE HOW THEY ALL INCREAS / DECREASE THROUGHOUT THE YEARS
+ALL <- data %>%
+  select(Year, Cause.Name, Deaths) %>%
+  filter(Cause.Name != 'All causes') %>%
+  group_by(Cause.Name, Year) %>%
+  summarize(TOT = sum(Deaths)) %>%
+  ggplot(aes(x = Year, y = TOT, color = Cause.Name)) + geom_point(alpha = .5) + geom_line()+ labs(
+   x = 'Years',
+   y = 'Total Amount of Deaths',
+   title = 'All Causes Throughout the Years',
+   color = 'Causes'
+    )
+
+ 
+ALL
+```
+
+---
+
+## **How has the number of heart disease deaths changed over time?**
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(kableExtra)
+
 # Filtering the heart disease data
 heart_data <- subset(data, grepl("Heart disease", Cause.Name, ignore.case = TRUE))
 
@@ -130,7 +165,16 @@ heart_trend <- heart_data %>%
   group_by(Year) %>%
   summarise(Total_Heart_Deaths = sum(Deaths, na.rm = TRUE))
 
-print(heart_trend)
+heart_trend %>%
+  mutate(Total_Heart_Deaths = format(Total_Heart_Deaths, big.mark = ",")) %>%
+  kable(col.names = c("Year", "Total Deaths")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "4cm", bold = TRUE) %>%
+  column_spec(2, width = "4cm")        
 
 # Number of heart disease deaths each year since 2001
 HEART_DISEASE <- data %>% 
@@ -155,7 +199,11 @@ HEART_DISEASE
 ---
 
 ## **How has the number of cancer deaths changed over time?**
-```{r echo = FALSE}
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+library(kableExtra)
+
 # Filtering the cancer data
 cancer_data <- subset(data, grepl("cancer", Cause.Name, ignore.case = TRUE))
 
@@ -164,7 +212,18 @@ cancer_trend <- cancer_data %>%
   group_by(Year) %>%
   summarise(Total_Deaths = sum(Deaths))
 
-print(cancer_trend)
+library(kableExtra)
+
+cancer_trend %>%
+  mutate(Total_Deaths = format(Total_Deaths, big.mark = ",")) %>%
+  kable(col.names = c("Year", "Total Deaths")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "4cm", bold = TRUE) %>%
+  column_spec(2, width = "4cm")                 
 
 # Plotting the rate of cancer deaths over time
 library(ggplot2)
@@ -177,42 +236,181 @@ ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
   theme_minimal()
 ```
 
+  
 ---
 
+# We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
 
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(patchwork)
 
-#ALL DISEASES SEE HOW THEY ALL INCREAS / DECREASE THROUGHOUT THE YEARS
-ALL <- data %>%
-  select(Year, Cause.Name, Deaths) %>%
-  filter(Cause.Name != 'All causes') %>%
-  group_by(Cause.Name, Year) %>%
-  summarize(TOT = sum(Deaths)) %>%
-  ggplot(aes(x = Year, y = TOT, color = Cause.Name)) + geom_point(alpha = .5) + geom_line()+ labs(
-   x = 'Years',
-   y = 'Total Amount of Deaths',
-   title = 'All Causes Throughout the Years',
-   color = 'Causes'
-    )
+all_causes <- data %>%
+  filter(Cause.Name == "All causes") %>%
+  select(State, Year, TotalDeaths = Deaths)
 
- 
-ALL
+known_cause_totals <- data %>%
+  filter(Cause.Name != "All causes") %>%
+  group_by(State, Year) %>% 
+  summarise(KnownCauseDeaths = sum(Deaths), .groups = "drop")
 
+residual_deaths <- all_causes %>%
+  left_join(known_cause_totals, by = c("State", "Year")) %>%
+  mutate(UnclassifiedDeaths = TotalDeaths - KnownCauseDeaths)
+
+
+residual_deaths %>%
+  mutate(
+    UnclassifiedDeaths = TotalDeaths - KnownCauseDeaths,
+    across(c(TotalDeaths, KnownCauseDeaths, UnclassifiedDeaths), 
+           ~ format(., big.mark = ","))
+  ) %>% 
+  select(State, Year, TotalDeaths, KnownCauseDeaths, UnclassifiedDeaths) %>%
+  head(10) %>% 
+  kable(
+    col.names = c("State", "Year", "Total Deaths", "Explained Deaths", "Unexplained Deaths"),
+    align = c("l", "c", "r", "r", "r")
+  ) %>% 
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "3cm", bold = TRUE) %>%
+  column_spec(2, width = "2cm") %>%
+  column_spec(3:5, width = "3cm")
+      
+
+
+# Plot 1: Deaths by known causes
+plot1 <- data %>% 
+  filter(State != "United States", Cause.Name != "All causes") %>% 
+  ggplot(aes(x = Year, y = Deaths, fill = Cause.Name)) +
+  geom_col(position = "stack") +
+  labs(
+    title = "Deaths by Cause and Year in U.S. States",
+    x = "Year",
+    y = "Deaths",
+    fill = "Cause of Death"
+  ) +
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis(angle = 80)) +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 2))  
+
+# Plot 2: Unexplained deaths
+plot2 <- residual_deaths %>% 
+  filter(State != "United States") %>% 
+  ggplot(aes(x = Year, y = UnclassifiedDeaths, fill = State)) +
+  geom_col(position = "stack") +
+  labs(
+    title = "Unexplained Deaths",
+    x = "Year",
+    y = "Deaths",
+    fill = "State"
+  ) +
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis(angle = 80)) +
+  theme(legend.position = "none")  
+
+combined <- (plot1 + plot2) +
+  plot_layout(ncol = 2)
+
+final_plot <- combined + plot_annotation(tag_levels = 'A')
+final_plot
+```
+
+---
+
+## **What is age adjusted death rate?**
+- Different states or regions have different age structures (e.g., Florida has more older people). 
+Older populations naturally have higher death rates so comparing raw death rates across states would be misleading.
+
+- To make fair comparisons across the states, public health stats use age adjustment 
+
+- Instead of comparing raw numbers, we adjust both using the same "standard" population age structure, usually the U.S. standard population.
+
+
+
+---
+
+# What is the death rate by cause and state?
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(plotly)
+p <- data %>%   filter(State !="United States", Cause.Name != "All causes") %>% 
+  group_by(State, Cause.Name) %>% summarise(RatebyState = mean(Age.adjusted.Death.Rate)) %>% 
+  ggplot(aes(y = Cause.Name, x = RatebyState, color = Cause.Name, text = State)) + geom_jitter() +
+  labs(title = "Death Rate by Cause and State",
+       x = "Average Age-Adjusted Death Rate",
+       y = "Cause of Death") +
+  theme_minimal()
+ggplotly(p)
+```
+
+---
+
+```{r echo=FALSE}
+library(dplyr)
+library(ggplot2)
+
+heart_disease_data <- data %>%
+  filter(Cause.Name == "Heart disease")
+
+ggplot(heart_disease_data, aes(x = as.factor(Year), y = reorder(State, -Age.adjusted.Death.Rate), fill = Age.adjusted.Death.Rate)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "plasma", name = "Death Rate") +
+  labs(
+    title = "Heatmap: Age-Adjusted Death Rate for Heart Disease",
+    x = "Year",
+    y = "State"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+---
+
+## How do the Amount of Deaths and Age Adjusted Death Rate Compare?
+
+```{r echo = FALSE}
 #COMPARE DEATH AND AGE AJUSTED
 
 COMPARISON <- data %>%
   select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
   filter(Cause.Name != 'All causes', State == 'United States') %>%
-  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000))
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000)) + 
+  labs(
+    x = 'Total Amount of Deaths',
+    y = 'Age Adjusted Death Rate',
+    title = 'Age Adjusted Death Rates Through All Diseases'
+  )
 
 COMPARISON
+```
+
+---
+
+## A Closer Look Into Heart Disease and Cancer
+
+```{r echo = FALSE}
+
 
 COMPARISON.2 <- data %>%
   select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
   filter(Cause.Name == c('Cancer','Heart disease'), State == 'United States') %>%
-  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000))
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter(size = 2.5) + facet_wrap(~Cause.Name) + labs(
+    x = 'Total Deaths',
+    y = 'Age Adjusted Death Rate',
+    title = 'Age Adjusted Death Rate Decrease'
+  ) + theme(panel.spacing = unit(1, 'cm', data = NULL)) + scale_color_gradient(low = 'red', high = 'turquoise')
 
 COMPARISON.2
+
 ```
 
 
