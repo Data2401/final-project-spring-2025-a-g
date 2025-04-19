@@ -176,28 +176,44 @@ ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
        y = "Total Cancer Deaths") +
   theme_minimal()
 ```
+
+---
+
+
 ```{r}
-#HIGHER PERCENTAGE = OLDER 
 
-PERCENTAGE <- data %>%
-  select(Age.adjusted.Death.Rate,Cause.Name, State) %>%
+#ALL DISEASES SEE HOW THEY ALL INCREAS / DECREASE THROUGHOUT THE YEARS
+ALL <- data %>%
+  select(Year, Cause.Name, Deaths) %>%
   filter(Cause.Name != 'All causes') %>%
-  ggplot(aes( y = Cause.Name, x = Age.adjusted.Death.Rate, color = Cause.Name)) + geom_point(alpha = .5) 
-PERCENTAGE
+  group_by(Cause.Name, Year) %>%
+  summarize(TOT = sum(Deaths)) %>%
+  ggplot(aes(x = Year, y = TOT, color = Cause.Name)) + geom_point(alpha = .5) + geom_line()+ labs(
+   x = 'Years',
+   y = 'Total Amount of Deaths',
+   title = 'All Causes Throughout the Years',
+   color = 'Causes'
+    )
 
-HEART <- data %>% select(Year, State, Age.adjusted.Death.Rate) %>%
-  filter(State != 'United States') %>%
-  ggplot(aes(y = State, x = Age.adjusted.Death.Rate, color = Year)) + geom_point()
-HEART
+ 
+ALL
 
-#AVERAGE DEATHS BY EACH STATE 
+#COMPARE DEATH AND AGE AJUSTED
 
-AVG <-  data %>%
-  filter(Cause.Name == 'All causes', State != 'United States', Year == 2002) %>%
-  group_by(State) %>%
-  summarize(AVG = (Deaths/100000) * 100)
-AVG 
+COMPARISON <- data %>%
+  select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
+  filter(Cause.Name != 'All causes', State == 'United States') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000))
 
+COMPARISON
 
+COMPARISON.2 <- data %>%
+  select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
+  filter(Cause.Name == c('Cancer','Heart disease'), State == 'United States') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000))
+
+COMPARISON.2
 ```
+
+
 
