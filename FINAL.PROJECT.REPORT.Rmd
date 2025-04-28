@@ -32,6 +32,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r echo = FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(dplyr)
+library(usmap)
 data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States (1).csv")
 ```
 
@@ -115,35 +116,26 @@ BOTH_COMBINED <- data %>%
 
 
 PLOTTING_PERCENTAGES <- BOTH_COMBINED %>% filter(State != 'United States',Cause.Name != 'All causes') %>%
-  ggplot(aes (y = State, x = `Percentage of Deaths`, color = Cause.Name )) + geom_point() + labs(
+  ggplot(aes ( y = State, x = `Percentage of Deaths`, color = Cause.Name )) + geom_point() + labs(
     title = 'Death percentage based on each Cause'  )
 
-PLOTTING_PERCENTAGES
+
+
+PLOTTING_PERC <- BOTH_COMBINED %>% filter(Cause.Name != 'All causes')  %>%
+  ggplot(aes(x = Cause.Name, y = State, fill = `Percentage of Deaths`)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "C") +
+  labs(title = "Heatmap of Death Percentages by Cause and State", x = "Cause", y = "State") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_discrete(expand = expansion(mult = c(.005, 0.005))) + theme(axis.text.y = element_text(size = 5))
+
+
+PLOTTING_PERC
+
+#PLOTTING_PERCENTAGES
 ```
 
-```{r}
 
-death_totals.2 <- data %>% 
-  select(State, Deaths, Cause.Name,Year) %>%
-  filter(State != 'United States', Cause.Name != 'All causes') %>%
-  group_by(State,Year) %>%
-  summarize(Total_Deaths = sum(Deaths, na.rm = TRUE))
-
-TOTAL_US_DEATHS.2 <- data %>%
-  select(State,Deaths,Year) %>%
-  group_by(Year) %>%
-  summarize(DEATHS = sum( Deaths))
-
-COMBINE.2.DATA <- death_totals.2 %>% right_join(TOTAL_US_DEATHS.2, by = 'Year') %>%
-  mutate(
-    `Percentage of Deaths` = ((Total_Deaths/DEATHS)* 100)
-  )
-
-GRAPHED_DATA <- COMBINE.2.DATA %>%
-  ggplot(aes(y = State, x = `Percentage of Deaths`, color = Year)) + geom_point()
-
-GRAPHED_DATA
-```
 ## **Leading Cause of Deaths in California **
 
 ```{r echo=FALSE}
@@ -214,7 +206,7 @@ heart_trend %>%
 
 # Number of heart disease deaths each year since 2001
 HEART_DISEASE <- data %>% 
-  filter(Cause.Name == 'Heart disease', State == 'California') %>%
+  filter(Cause.Name == 'Heart disease') %>%
   group_by(Year) %>%
   summarize(TOTAL = sum(Deaths)) %>%
   
@@ -232,6 +224,7 @@ HEART_DISEASE <- data %>%
 HEART_DISEASE
 ```
 
+This plot show how Heart Disease has been decreasing throughout time. The United States started bringing in more awareness to Heart Disease and people started reaching out for help. We can see that from 2010 and 2012, we see a dip in deaths, this is due to the Million Hearts being launched by the United States Department of Health. Their main goal was to prevent 1 million heart diseases by 2017. We can see this dip in the plot above. Before 2010, This can be due to people making better choices for themselves, such as not smoking and better eating habits.
 
 ## **How has the number of cancer deaths changed over time?**
 
@@ -271,6 +264,7 @@ ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
   theme_minimal()
 ```
 
+In this data we can see that the deaths caused by cancer keep increasing throughout the years. We can see that there is a dip in 2004, this is due to some states statistical data not meeting the requirements to be included to the US data. Since this happened, the amount of deaths decreased due to some states not meeting the requirements to input their data. 
 
 
 # We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
@@ -360,7 +354,7 @@ combined <- (plot1 + plot2) +
 final_plot <- combined + plot_annotation(tag_levels = 'A')
 final_plot
 ```
-
+This plot represents the total amount of deaths through these diseases, but also the amount of unexplained deaths. The unexplained deaths can be due to the data being specifically based on the top 10 deaths in the United States. The total amount of deaths is from all residents death certificates that were filed through this time. 
 
 ## **What is age adjusted death rate?**
 - Different states or regions have different age structures.
@@ -384,6 +378,7 @@ p <- data %>%   filter(State !="United States", Cause.Name != "All causes") %>%
   theme_minimal()
 ggplotly(p)
 ```
+
 
 
 ```{r echo=FALSE}
@@ -446,5 +441,5 @@ COMPARISON.2
 
 ```
 
-When we look at this data, we can notice that there has been a change in Heart Disease and Cancer throughout these years. When I searched it up a bit more, it says that there can be changes throughout the years due to better technology. Due to better technology, these diseases are faster to detect. Therefore the age gap between the amount of deaths is closing in. Creating a greater percentage for those who........While deaths may be high, this can also be due to a higher population increasing through the time. 
+When we look at this data, we can notice that there has been a change in Heart Disease and Cancer throughout these years. When I searched it up a bit more, it says that there can be changes throughout the years due to better technology. Due to better technology, these diseases are faster to detect. Therefore the age gap between the amount of deaths is closing in. Creating a greater percentage for those who have an older population. While deaths may be high, this can be due to the population increasing over the time. 
 
