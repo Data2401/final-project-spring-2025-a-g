@@ -102,6 +102,39 @@ TOTAL_DEATHS_BY_STATE <- ggplot(death_totals, aes(x = Total_Deaths, y = reorder(
   theme(legend.position = "none") 
 
 print(TOTAL_DEATHS_BY_STATE)
+
+
+US_TOTAL_DEATHS <- data %>%
+  filter(State == "United States") %>%
+  select(Year, Cause.Name, US_Deaths = Deaths)
+
+ALL_CAUSE_DEATH <- data %>%
+  filter(Cause.Name == "All causes") %>%
+  select(Year, State, All_Causes_Deaths = Deaths)
+
+BOTH_COMBINED <- data %>%
+  left_join(US_TOTAL_DEATHS, by = c("Year", "Cause.Name")) %>%
+  left_join(ALL_CAUSE_DEATH, by = c("Year", "State")) %>%
+  mutate(
+    `Percentage of Deaths` = ((Deaths / All_Causes_Deaths) * 100))
+
+
+PLOTTING_PERCENTAGES <- BOTH_COMBINED %>% filter(State != 'United States',Cause.Name != 'All causes') %>%
+  ggplot(aes ( y = State, x = `Percentage of Deaths`, color = Cause.Name )) + geom_point() + labs(
+    title = 'Death percentage based on each Cause'  )
+
+
+
+PLOTTING_PERC <- BOTH_COMBINED %>% filter(Cause.Name != 'All causes')  %>%
+  ggplot(aes(x = Cause.Name, y = State, fill = `Percentage of Deaths`)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "C") +
+  labs(title = "Heatmap of Death Percentages by Cause and State", x = "Cause", y = "State") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_discrete(expand = expansion(mult = c(.005, 0.005))) + theme(axis.text.y = element_text(size = 5))
+
+
+PLOTTING_PERC
 ```
 
 ---

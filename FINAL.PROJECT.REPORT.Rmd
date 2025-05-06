@@ -1,7 +1,10 @@
 ---
 title: 'Deaths in the United State Report'
 author: 'Angelica Gamboa and Gwendolyn Espinoza'
-output: html_document
+output: 
+  html_document: 
+    fig_width: 8
+    fig_height: 7
 date: "2025-04-26"
 ---
 
@@ -62,6 +65,7 @@ ggplot(top_causes, aes(x = total_deaths, y = reorder(Cause.Name, total_deaths)))
        y = 'Cause of Death',
        subtitle = 'CLRD stands for Chronic Lower Respiratory Diseases')
 ```
+
 This is the total summation of all Deaths from 1999 to 2017. We can see that there are many deaths due to Heart Disease and Cancer. The least amount of deaths being by suicide.  
 
 
@@ -96,6 +100,9 @@ TOTAL_DEATHS_BY_STATE <- ggplot(death_totals, aes(x = Total_Deaths, y = reorder(
 print(TOTAL_DEATHS_BY_STATE)
 ```
 
+The total deaths through every state from 1999 to 2017. California had the most amount of deaths, this can be due to the high population in California. Then we see that Florida and Texas follow up behind California. Even though Florida has a smaller population than Texas, the amount of deaths overpassed Texas' deaths. 
+
+
 ```{r echo = FALSE}
 
 US_TOTAL_DEATHS <- data %>%
@@ -125,7 +132,7 @@ PLOTTING_PERC <- BOTH_COMBINED %>% filter(Cause.Name != 'All causes')  %>%
   scale_fill_viridis_c(option = "C") +
   labs(title = "Heatmap of Death Percentages by Cause and State", x = "Cause", y = "State") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_discrete(expand = expansion(mult = c(.005, 0.005))) + theme(axis.text.y = element_text(size = 5))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_discrete(expand = expansion(mult = c(.005, 0.005))) + theme(axis.text.y = element_text(size = 8))
 
 
 PLOTTING_PERC
@@ -158,6 +165,7 @@ plot_usmap(data = merged_map, values = "Proportion", labels = FALSE) +
   theme(legend.position = "right")
 ```
 
+This heatmap is representing the percentage that each disease accounts for in each state. This percentage is each of these diseases total amount of deaths over the total amount of deaths. We can see that in some states there is a higher percentage of people dying from a certain disease than others. For example we see a higher percentage in unintentional injuries in Alaska than any other state. We can also that heart disease is a higher cause of death in New York.
 
 ## **Leading Cause of Deaths in California **
 
@@ -178,6 +186,7 @@ Leading_cause <- data %>%
 Leading_cause
 ```
 
+Since California had the highest amount of deaths in the United States, we chose to take a closer look. As we can see, Heart Disease and Cancer have been the leading causes. 
 
 ## Changes Throughout the Years
 
@@ -201,7 +210,7 @@ ALL <- data %>%
  
 ALL
 ```
-
+We decided to look at all the causes in one big graph and see which ones have changes the most throughout time. We can see that heart disease started off with a high amount of deaths and has slowly decreased throughout time. We can also see that cancer is having a linearly increase in deaths through the years. For the other diseases, we see a constant amount of deaths, some decreasing like stroke, and some increasing like unintentional injuries and Alzheimer's disease.
 
 ## **How has the number of heart disease deaths changed over time?**
 
@@ -377,6 +386,7 @@ combined <- (plot1 + plot2) +
 final_plot <- combined + plot_annotation(tag_levels = 'A')
 final_plot
 ```
+
 This plot represents the total amount of deaths through these diseases, but also the amount of unexplained deaths. The unexplained deaths can be due to the data being specifically based on the top 10 deaths in the United States. The total amount of deaths is from all residents death certificates that were filed through this time. 
 
 ## **What is age adjusted death rate?**
@@ -426,6 +436,7 @@ ggplot(heart_disease_data, aes(x = as.factor(Year), y = reorder(State, -Age.adju
   )
 ```
 
+This represents the Death Rate in each of the states in the United States for the cause Heart Disease. As we can see Mississippi has the highest death rate through all the years. Mississippi has made changes for the community such as The Mississippi Chronic Illness Coalition (MCIC) to help improve the amount of deaths due to Heart disease. There is a whole plan of trying to prevent Heart Disease throughout these years. (https://msdh.ms.gov/msdhsite/_static/resources/3840.pdf, MSDH) This link provides more information on their plans to prevent heart disease.
 
 ## How do the Amount of Deaths and Age Adjusted Death Rate Compare?
 
@@ -444,6 +455,7 @@ COMPARISON <- data %>%
 
 COMPARISON
 ```
+
 When looking at all these graphs throughout the time, we can see the amount of deaths and the Age Adjusted Death Rate together. We see that through many of the death causes like CLRD, Stroke, Diabetes, Influeza and Pneumonia there has been a decrease throughout time. We see a huge decrease in the cause stroke also. Strokes can be caused if you have diabetes, it is an underlining of strokes because it can damage your blood vessels and cause your blood to cloth. We can see that diabetes has also decrease. Therefore these two are somewhat reflecting off of each other to an extent.  
 
 ## A Closer Look Into Heart Disease and Cancer
@@ -482,6 +494,7 @@ FLORIDA_RATE <- data %>%
 
 FLORIDA_RATE
 ```
+
 While presenting we were asked about Florida specifically, mainly about the age in Florida. We were not given ages, but we can look at the Age Adjusted Death Rate and see that the percentages have increased. Alzheimer's disease is mainly diagnosed on people of older age. (Ages 65+) This disease has had an increase in Florida, so yes we can say that older people do live in Florida. Before though, not many people. The Age Adjusted Death Rate didn't see in increase until 2011, therefore now there are probably more older people moving to Florida. 
 
 ## LIMITATION
@@ -490,4 +503,9 @@ This project has been very interesting to work on. There are some limitations on
 
 ## SUMMARY
 
+Through this project, we were able to see each of these diseases, and how many people die in every state. No matter what state it was, it had a high amount of heart disease and cancer deaths. There are many movements that the United States and your state have provided to prevent these disease. (or atleast help identify them)
+We hope through this people can take action on their own health, because many of these disease can now be identified, especially now that technology has grown as the time comes. 
 
+These are some links to help you find the help you need.
+- Heart Disease (https://millionhearts.hhs.gov/)
+- Cancer (https://www.cancer.gov/)
