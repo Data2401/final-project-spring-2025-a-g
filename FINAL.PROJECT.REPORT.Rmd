@@ -18,6 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 - The data was gathered from **National Center for Health Statistics (NCHS)** – *Leading Causes of Death in the U.S.* This data gives us the top 10 most causes of deaths in the United States. We are given the data from every state in the United States from the years 1999 to 2017. Through this data, we were able to see the causes of deaths in the United States and how they have progressed over time. 
 
 
+
 # QUESTIONS
 1. What are the leading causes of death since 2001?
 2. Which state had the most amount of deaths in the US?
@@ -67,6 +68,7 @@ ggplot(top_causes, aes(x = total_deaths, y = reorder(Cause.Name, total_deaths)))
        subtitle = 'CLRD stands for Chronic Lower Respiratory Diseases')
 ```
 
+
 This plot shows the total summation of all Deaths from 1999 to 2017. We can see that there are many deaths due to Heart Disease and Cancer. The least amount of deaths being by suicide. Because Heart Disease and Cancer were the top causes of death across all 50 states, it led us to our next questions: Which state experienced the most deaths? And, are Heart Disease and Cancer also the two leading the *causes* in that state?
 
 
@@ -102,6 +104,7 @@ print(TOTAL_DEATHS_BY_STATE)
 ```
 
 This plot illustrates the total deaths throughout every state from 1999 to 2017. California had the most amount of deaths, though this can be due to the high population in California. Then we see that Florida and Texas follow up behind California. Even though Florida has a smaller population than Texas, the amount of deaths overpassed Texas' deaths. 
+
 
 ## Each Disease Percentages in Every State
 
@@ -145,6 +148,7 @@ PLOTTING_PERC
 
 ```
 
+
 This heatmap shows the percentage that each disease accounts for in each state. This percentage is calculated by dividing the number of deaths from a specific cause by the total number of deaths in each state. We can see that in some states there is a higher percentage of people dying from a certain disease than others. For example, we see a higher percentage in unintentional injuries in Alaska than any other state. Similarly, Heart Disease accounts for a large share of deaths in New York.
 
 ## **Leading Cause of Deaths in California **
@@ -166,6 +170,7 @@ Leading_cause <- data %>%
 Leading_cause
 ```
 
+
 Since California had the highest amount of deaths in the United States, we chose to take a closer look. As shown, Heart Disease and Cancer have consistently been the leading causes of death in each state.
 
 ## Changes Throughout the Years
@@ -185,9 +190,13 @@ ALL <- data %>%
    title = 'All Causes Throughout the Years',
    color = 'Causes'
     )
+
 ALL
 ```
+
+
 We decided to create a comprehensive graph that contains all causes of death over time to be able to identify which have changed the most. Heart disease started off with a high amount of deaths and has slowly decreased throughout time. In contrast, Cancer shows a steady, linear increase in deaths through the years. It is imperative to note that though the number of deaths caused by Heart Disease has slowly decreased over time, it continues to be a top leading cause of death. For the other diseases, we see a constant amount of deaths, some decreasing like stroke, and some increasing like unintentional injuries and Alzheimer's disease.
+
 
 ## **How has the number of heart disease deaths changed over time?**
 
@@ -233,8 +242,8 @@ HEART_DISEASE <- data %>%
 HEART_DISEASE
 ```
 
-This plot shows a steady decline in deaths caused by Heart Disease throughout time. Because of increased public awareness and access to preventive care, it is evident that individuals have began seeking help and leading a more healthier lifestyle. Notably, between the years of 2010 and 2012, there is a visible dip in deaths, which aligns with the launch of the [Million Hearts](https://millionhearts.hhs.gov/) initiative by the United States Department of Health and Human Services. Their main goal was to prevent 1 million heart attacks and strokes by 2017. The earlier decline, prior to 2010, can be attributed to the improved public health messaging, reduced smoking rates, and healthier diet habits.
 
+This plot shows a steady decline in deaths caused by Heart Disease throughout time. Because of increased public awareness and access to preventive care, it is evident that individuals have began seeking help and leading a more healthier lifestyle. Notably, between the years of 2010 and 2012, there is a visible dip in deaths, which aligns with the launch of the [Million Hearts](https://millionhearts.hhs.gov/) initiative by the United States Department of Health and Human Services. Their main goal was to prevent 1 million heart attacks and strokes by 2017. The earlier decline, prior to 2010, can be attributed to the improved public health messaging, reduced smoking rates, and healthier diet habits.
 
 
 ## **How has the number of cancer deaths changed over time?**
@@ -274,6 +283,7 @@ ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
        y = "Total Cancer Deaths") +
   theme_minimal()
 ```
+
 
 This data shows a consistent increase caused by [Cancer](https://www.cancer.gov/) throughout the years. However, there is a dip in 2004. This is due to some states statistical data not meeting the requirements to be included to the US data. Since this happened, the amount of deaths reported appeared lower due to some states not meeting the requirements to input their data for that year. 
 
@@ -366,7 +376,9 @@ final_plot <- combined + plot_annotation(tag_levels = 'A')
 final_plot
 ```
 
+
 This plot contains a side-by-side comparison of each leading cause of deaths since 2001. The plot on the left displays the total number of deaths attributed to the top 10 leading causes, while the plot on the right shows the number of unexplained/unclassified deaths labeled as "all causes" in our data set. The unexplained deaths likely represent causes not included based on the top 10 and therefore not specifically categorized.The total amount of deaths is from all residents death certificates that were filed through this time. Notably, the number of deaths in the "all causes" category has steadily increased over time.
+
 
 ## **What is age adjusted death rate?**
 - Different states or regions have different age structures.
@@ -391,7 +403,9 @@ p <- data %>%   filter(State !="United States", Cause.Name != "All causes") %>%
 ggplotly(p)
 ```
 
+
 This plot represents the average age-adjusted death rates of these diseases and their causes. The averages aid in providing an accurate presentation of what each of these diseases consist of. For some diseases, such as diabetes, Alzheimer's, and CLDR, the rates appear consistent across states. In contrast, the death rates for Heart Disease and Cancer are more widely scattered which would indicate a significant variation between states. Some of these differences can the attributed to some factors like population age, access to healthcare, and lifestyle. 
+
 
 ```{r echo=FALSE}
 library(dplyr)
@@ -415,8 +429,10 @@ ggplot(heart_disease_data, aes(x = as.factor(Year), y = reorder(State, -Age.adju
   )
 ```
 
+
 This plot represents the average death rate for Heart Disease across each state in the United States. Notably, Mississippi has consistently had the highest death rate throughout the years. Mississippi has implemented some changes for the community such as The Mississippi Chronic Illness Coalition (MCIC) to help improve the amount of deaths caused by Heart disease. Its main focus is on community education, healthcare provider training, and the fight to improve cardiovascular health. This link provides more information on their plans to prevent heart disease:
 [MSDH Heart Disease Prevention Plan](https://msdh.ms.gov/msdhsite/_static/resources/3840.pdf). 
+
 
 ## How Does Total Amount Of Deaths Reflect Onto Age Adjusted Death Rate?
 
@@ -479,8 +495,15 @@ While presenting we were asked about Florida specifically, mainly about the age 
 
 ## LIMITATION
 
-This project has been very interesting and insightful experience to work on, though there are some limitations. I think it would've been better if our data also included ages. We think this would've helped a lot in some of the questions that we were receiving from people. Ages play a big roll into these diseases, we are given a bit by the Age Adjusted Death Rate but not to the fullest (Specifics on age range). I also think that it would've been nice to have the specific type of Cancer. We are given a more generalized name for Cancer, it is all in one category instead of being a general Cancer name and a specific Cancer name. Another limitation that led to less specificity in our data would be the "all causes" category. It was unknown what it consisted of and it would have bene helpful to have a clearer breakdown beyond just the 10 causes.
+
+This project has been very interesting and insightful experience to work on, though there are some limitations. I think it would've been better if our data also included ages. We think this would've helped a lot in some of the questions that we were receiving from people. Ages play a big roll into these diseases, we are given a bit by the Age Adjusted Death Rate but not to the fullest (Specifics on age range). I also think that it would've been nice to have the specific type of Cancer. We are given a more generalized name for Cancer, it is all in one category instead of being a general Cancer name and a specific Cancer name. Another limitation that led to less specificity in our data would be the "all causes" category. It was unknown what it consisted of and it would have been helpful to have a clearer breakdown beyond just the 10 causes.
 
 ## SUMMARY
 
 Through this project, we were able to gain an insight into the impact of each of these diseases and how they contribute to the mortality across every state. Regardless of the state, there was a high amount of heart disease and cancer deaths as the top two leading causes of death. Fortunately, there have been countless initiatives on a national and state level that have been implemented to prevent these diseases, or at the very least slow the rate in which they occur with early identification. We hope that this project encourages people to take action on managing their health, as many of these diseases can now be detected at a earlier state, thanks to advancements in technology.
+ 
+
+## SUMMARY
+
+Through this project, we were able to see each of these diseases, and how many people die in every state. No matter what state it was, it had a high amount of heart disease and cancer deaths. There are many movements that the United States and your state have provided to prevent these disease. (or atleast help identify them)
+We hope through this people can take action on their own health, because many of these disease can now be identified, especially now that technology has grown as the time comes. 
