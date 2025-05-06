@@ -1,0 +1,486 @@
+---
+title: 'Deaths in the United State Report'
+author: 'Angelica Gamboa and Gwendolyn Espinoza'
+output: 
+  html_document: 
+    fig_width: 8
+    fig_height: 7
+date: "2025-05-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# INTRODUCTION
+
+- The data was gathered from **National Center for Health Statistics (NCHS)** – *Leading Causes of Death in the U.S.* This data gives us the top 10 most causes of deaths in the United States. We are given the data from every state in the United States from the years 1999 to 2017. Through this data, we were able to see the causes of deaths in the United States and how they have progressed over time. 
+
+
+# QUESTIONS
+1. What are the leading causes of death since 2001?
+2. Which state had the most amount of deaths in the US?
+3. What was the leading cause of death in California?
+4. How has the cause of heart disease deaths changed over time?
+5. How has the cause of cancer deaths changed over time?
+6. We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
+7. What is the death rate by cause and state?
+8. What is the age-adjusted death rate for heart disease?
+9. Is Florida mainly older people?
+10. What is the comparison between deaths and age adjusted death rate?
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(dplyr)
+library(usmap)
+library(scales)
+data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States (1).csv")
+```
+
+
+# Variables in the dataset:
+  - Year: `Year in which the incident took place.`
+  - X113 cause name: `The full, official name of the cause of death classified by the NCHS.`
+  - Cause name: `A broader label for the cause of death.`
+  - State: `The U.S. state where the data was collected.`
+  - Deaths: `The total number of deaths reported for a specific cause of death.`
+  - Age-adjusted death rate: `The death rate per 100,000 people, adjusted per age group for fair comparison.`
+
+
+## **Leading Causes of Death Since 2001**
+
+```{r echo = FALSE}
+# Filtering the data and removing "United States" from the column named 'States'
+top_causes <- data %>%
+  filter(Cause.Name != "All causes", State != "United States") %>% 
+  group_by(Cause.Name) %>%
+  summarise(total_deaths = sum(Deaths)) %>%
+  arrange(desc(total_deaths))
+  
+# Plotting causes of death
+ggplot(top_causes, aes(x = total_deaths, y = reorder(Cause.Name, total_deaths))) +
+  geom_col(fill = 'purple3') +
+  labs(title = 'Top 10 Causes of Death in the U.S. Since 1999',
+       x = 'Total Deaths',
+       y = 'Cause of Death',
+       subtitle = 'CLRD stands for Chronic Lower Respiratory Diseases')
+```
+
+This plot shows the total summation of all Deaths from 1999 to 2017. We can see that there are many deaths due to Heart Disease and Cancer. The least amount of deaths being by suicide. Because Heart Disease and Cancer were the top causes of death across all 50 states, it led us to our next questions: Which state experienced the most deaths? And, are Heart Disease and Cancer also the two leading the *causes* in that state?
+
+
+## **Total Deaths in Each State**
+
+```{r echo = FALSE}
+library(dplyr)
+library(ggplot2)
+
+death_totals <- data %>% 
+  select(State, Deaths, Cause.Name) %>%
+  filter(State != 'United States', Cause.Name != 'All causes') %>%
+  group_by(State) %>%
+  summarize(Total_Deaths = sum(Deaths, na.rm = TRUE))
+
+
+# Highlighting California since it has the most deaths
+death_totals <- death_totals %>%
+  mutate(Color = ifelse(State == "California", "California", "Other"))
+
+TOTAL_DEATHS_BY_STATE <- ggplot(death_totals, aes(x = Total_Deaths, y = reorder(State, Total_Deaths), fill = Color)) +
+  geom_col() +
+  scale_fill_manual(values = c("California" = "red")) +
+  labs(
+    x = "Deaths",
+    y = "States",
+    title = "Total Amount of Deaths in Each State Since 2001"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") 
+
+print(TOTAL_DEATHS_BY_STATE)
+```
+
+This plot illustrates the total deaths throughout every state from 1999 to 2017. California had the most amount of deaths, though this can be due to the high population in California. Then we see that Florida and Texas follow up behind California. Even though Florida has a smaller population than Texas, the amount of deaths overpassed Texas' deaths. 
+
+## Each Disease Percentages in Every State
+
+```{r echo = FALSE}
+
+US_TOTAL_DEATHS <- data %>%
+  filter(State == "United States") %>%
+  select(Year, Cause.Name, US_Deaths = Deaths)
+
+ALL_CAUSE_DEATH <- data %>%
+  filter(Cause.Name == "All causes") %>%
+  select(Year, State, All_Causes_Deaths = Deaths)
+
+BOTH_COMBINED <- data %>%
+  left_join(US_TOTAL_DEATHS, by = c("Year", "Cause.Name")) %>%
+  left_join(ALL_CAUSE_DEATH, by = c("Year", "State")) %>%
+  mutate(
+    `Percentage of Deaths` = ((Deaths / All_Causes_Deaths) * 100))
+
+
+PLOTTING_PERCENTAGES <- BOTH_COMBINED %>% filter(State != 'United States',Cause.Name != 'All causes') %>%
+  ggplot(aes ( y = State, x = `Percentage of Deaths`, color = Cause.Name )) + geom_point() + labs(
+    title = 'Death percentage based on each Cause'  )
+
+
+
+PLOTTING_PERC <- BOTH_COMBINED %>% filter(Cause.Name != 'All causes')  %>%
+  ggplot(aes(x = Cause.Name, y = State, fill = `Percentage of Deaths`)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "C") +
+  labs(title = "Each Disease Percentage in Every State",
+       x = "Cause Name",
+       y = "State") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_discrete(expand = expansion(mult = c(.005, 0.005))) + theme(axis.text.y = element_text(size = 8))
+
+
+PLOTTING_PERC
+
+#PLOTTING_PERCENTAGES
+
+```
+
+This heatmap shows the percentage that each disease accounts for in each state. This percentage is calculated by dividing the number of deaths from a specific cause by the total number of deaths in each state. We can see that in some states there is a higher percentage of people dying from a certain disease than others. For example, we see a higher percentage in unintentional injuries in Alaska than any other state. Similarly, Heart Disease accounts for a large share of deaths in New York.
+
+## **Leading Cause of Deaths in California **
+
+```{r echo=FALSE}
+Leading_cause <- data %>%
+  filter(State == 'California', Cause.Name != 'All causes') %>%
+  group_by(Cause.Name) %>%
+  summarize(sum(Deaths)) %>%
+  ggplot(aes(x = Cause.Name, y = `sum(Deaths)`)) + geom_col(fill = 'violet', color = 'black') +
+  labs(
+    title = "Leading Causes of Death in California",
+    x = "Cause Name",
+    y = "Total Number of Deaths"
+  ) +
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis( angle = 80))
+
+Leading_cause
+```
+
+Since California had the highest amount of deaths in the United States, we chose to take a closer look. As shown, Heart Disease and Cancer have consistently been the leading causes of death in each state.
+
+## Changes Throughout the Years
+
+```{r echo = FALSE}
+#HIGHER PERCENTAGE = SUGGESTS AN OLDER POPULATION
+
+#ALL DISEASES SEE HOW THEY ALL INCREASE / DECREASE THROUGHOUT THE YEARS
+ALL <- data %>%
+  select(Year, Cause.Name, Deaths) %>%
+  filter(Cause.Name != 'All causes') %>%
+  group_by(Cause.Name, Year) %>%
+  summarize(TOT = sum(Deaths)) %>%
+  ggplot(aes(x = Year, y = TOT, color = Cause.Name)) + geom_point(alpha = .5) + geom_line()+ labs(
+   x = 'Years',
+   y = 'Total Amount of Deaths',
+   title = 'All Causes Throughout the Years',
+   color = 'Causes'
+    )
+ALL
+```
+We decided to create a comprehensive graph that contains all causes of death over time to be able to identify which have changed the most. Heart disease started off with a high amount of deaths and has slowly decreased throughout time. In contrast, Cancer shows a steady, linear increase in deaths through the years. It is imperative to note that though the number of deaths caused by Heart Disease has slowly decreased over time, it continues to be a top leading cause of death. For the other diseases, we see a constant amount of deaths, some decreasing like stroke, and some increasing like unintentional injuries and Alzheimer's disease.
+
+## **How has the number of heart disease deaths changed over time?**
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(kableExtra)
+
+# Filtering the heart disease data
+heart_data <- subset(data, grepl("Heart disease", Cause.Name, ignore.case = TRUE))
+
+# Number of heart disease deaths each year since 1999
+heart_trend <- heart_data %>%
+  group_by(Year) %>%
+  summarise(Total_Heart_Deaths = sum(Deaths, na.rm = TRUE))
+
+heart_trend %>%
+  mutate(Total_Heart_Deaths = format(Total_Heart_Deaths, big.mark = ",")) %>%
+  kable(col.names = c("Year", "Total Deaths")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "4cm", bold = TRUE) %>%
+  column_spec(2, width = "4cm")        
+
+# Number of heart disease deaths each year since 2001
+HEART_DISEASE <- data %>% 
+  filter(Cause.Name == 'Heart disease') %>%
+  group_by(Year) %>%
+  summarize(TOTAL = sum(Deaths)) %>%
+  
+  # Plotting the rate of heart disease deaths over time
+  ggplot(aes(x = Year, y = TOTAL)) + 
+  geom_line(color = 'lightblue', linewidth = 1.2) + 
+  geom_point(color = 'black') +
+  labs(
+    title = "Total Heart Disease Deaths",
+    x = "Year",
+    y = "Total number of Heart Disease Deaths"
+  ) +
+  theme_minimal()
+
+HEART_DISEASE
+```
+
+This plot shows a steady decline in deaths caused by Heart Disease throughout time. Because of increased public awareness and access to preventive care, it is evident that individuals have began seeking help and leading a more healthier lifestyle. Notably, between the years of 2010 and 2012, there is a visible dip in deaths, which aligns with the launch of the [Million Hearts](https://millionhearts.hhs.gov/) initiative by the United States Department of Health and Human Services. Their main goal was to prevent 1 million heart attacks and strokes by 2017. The earlier decline, prior to 2010, can be attributed to the improved public health messaging, reduced smoking rates, and healthier diet habits.
+
+
+
+## **How has the number of cancer deaths changed over time?**
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+library(kableExtra)
+
+# Filtering the cancer data
+cancer_data <- subset(data, grepl("cancer", Cause.Name, ignore.case = TRUE))
+
+# Number of cancer deaths each year since 2001
+cancer_trend <- cancer_data %>%
+  group_by(Year) %>%
+  summarise(Total_Deaths = sum(Deaths))
+
+library(kableExtra)
+
+cancer_trend %>%
+  mutate(Total_Deaths = format(Total_Deaths, big.mark = ",")) %>%
+  kable(col.names = c("Year", "Total Deaths")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "4cm", bold = TRUE) %>%
+  column_spec(2, width = "4cm")                 
+
+# Plotting the rate of cancer deaths over time
+library(ggplot2)
+ggplot(cancer_trend, aes(x = Year, y = Total_Deaths)) +
+  geom_line(color = "aquamarine3", linewidth = 1.2) +
+  geom_point(color = "black") +
+  labs(title = "Trend of Cancer Deaths Over Time",
+       x = "Year",
+       y = "Total Cancer Deaths") +
+  theme_minimal()
+```
+
+This data shows a consistent increase caused by [Cancer](https://www.cancer.gov/) throughout the years. However, there is a dip in 2004. This is due to some states statistical data not meeting the requirements to be included to the US data. Since this happened, the amount of deaths reported appeared lower due to some states not meeting the requirements to input their data for that year. 
+
+
+# We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+
+all_causes <- data %>%
+  filter(Cause.Name == "All causes") %>%
+  select(State, Year, TotalDeaths = Deaths)
+
+known_cause_totals <- data %>%
+  filter(Cause.Name != "All causes") %>%
+  group_by(State, Year) %>% 
+  summarise(KnownCauseDeaths = sum(Deaths), .groups = "drop")
+
+residual_deaths <- all_causes %>%
+  left_join(known_cause_totals, by = c("State", "Year")) %>%
+  mutate(UnclassifiedDeaths = TotalDeaths - KnownCauseDeaths)
+
+
+residual_deaths %>%
+  filter(State != 'United States') %>% 
+  mutate(
+    UnclassifiedDeaths = TotalDeaths - KnownCauseDeaths, 
+    across(c(TotalDeaths, KnownCauseDeaths, UnclassifiedDeaths), 
+           ~ format(., big.mark = ","))
+  ) %>% 
+  select(State, Year, TotalDeaths, KnownCauseDeaths, UnclassifiedDeaths) %>%
+  head(10) %>% 
+  kable(
+    col.names = c("State", "Year", "Total Deaths", "Known Cause Deaths", "Unclassified Deaths"),
+    align = c("l", "c", "r", "r", "r")
+  ) %>% 
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "left"
+  ) %>%
+  column_spec(1, width = "3cm", bold = TRUE) %>%
+  column_spec(2, width = "2cm") %>%
+  column_spec(3:5, width = "3cm")
+      
+
+
+# Plot 1: Deaths by known causes
+plot1 <- data %>% 
+  filter(State != "United States", Cause.Name != "All causes") %>% 
+  ggplot(aes(x = Year, y = Deaths, fill = Cause.Name)) +
+  geom_col(position = "stack") +
+  labs(
+    title = "Known Death Causes in U.S. States",
+    x = "Years Since 2001",
+    y = "Deaths",
+    fill = "Cause of Death"
+  ) +
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis(angle = 80)) +
+  scale_fill_brewer(palette = "Paired") +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 2))  
+
+# Plot 2: Unexplained deaths
+unclassified_data <- residual_deaths %>%
+  filter(State != "United States") %>%
+  mutate(Cause.Name = "Unclassified") %>%
+  select(State, Year, Cause.Name, Deaths = UnclassifiedDeaths)
+
+plot2 <- unclassified_data %>% 
+  ggplot(aes(x = Year, y = Deaths)) +
+  geom_col(position = "stack") +
+  labs(
+    title = "Unexplained Deaths",
+    x = "Years Since 2001",
+    y = "Deaths",
+    fill = "State"
+  ) +
+  theme_minimal() +
+  scale_x_discrete(guide = guide_axis(angle = 80)) +
+  theme(legend.position = "none")   
+
+combined <- (plot1 + plot2) +
+  plot_layout(ncol = 2)
+
+final_plot <- combined + plot_annotation(tag_levels = 'A')
+final_plot
+```
+
+This plot contains a side-by-side comparison of each leading cause of deaths since 2001. The plot on the left displays the total number of deaths attributed to the top 10 leading causes, while the plot on the right shows the number of unexplained/unclassified deaths labeled as "all causes" in our data set. The unexplained deaths likely represent causes not included based on the top 10 and therefore not specifically categorized.The total amount of deaths is from all residents death certificates that were filed through this time. Notably, the number of deaths in the "all causes" category has steadily increased over time.
+
+## **What is age adjusted death rate?**
+- Different states or regions have different age structures.
+
+- Older populations naturally have higher death rates so comparing raw death rates across states would be misleading.
+
+- To make fair comparisons across the states, public health stats use age adjustment instead of uing raw numbers. 
+
+
+
+# What is the death rate by cause and state?
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+library(plotly)
+p <- data %>%   filter(State !="United States", Cause.Name != "All causes") %>% 
+  group_by(State, Cause.Name) %>% summarise(RatebyState = mean(Age.adjusted.Death.Rate)) %>% 
+  ggplot(aes(y = Cause.Name, x = RatebyState, color = Cause.Name, text = State)) + geom_jitter() +
+  labs(title = "Death Rate by Cause and State",
+       x = "Average Age-Adjusted Death Rate",
+       y = "Cause of Death") +
+  theme_minimal()
+ggplotly(p)
+```
+
+This plot represents the average age-adjusted death rates of these diseases and their causes. The averages aid in providing an accurate presentation of what each of these diseases consist of. For some diseases, such as diabetes, Alzheimer's, and CLDR, the rates appear consistent across states. In contrast, the death rates for Heart Disease and Cancer are more widely scattered which would indicate a significant variation between states. Some of these differences can the attributed to some factors like population age, access to healthcare, and lifestyle. 
+
+```{r echo=FALSE}
+library(dplyr)
+library(ggplot2)
+
+heart_disease_data <- data %>%
+  filter(Cause.Name == "Heart disease")
+
+ggplot(heart_disease_data, aes(x = as.factor(Year), y = reorder(State, -Age.adjusted.Death.Rate), fill = Age.adjusted.Death.Rate)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "plasma", name = "Death Rate") +
+  labs(
+    title = "Heatmap: Age-Adjusted Death Rate for Heart Disease",
+    x = "Year",
+    y = "State"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+```
+
+This plot represents the average death rate for Heart Disease across each state in the United States. Notably, Mississippi has consistently had the highest death rate throughout the years. Mississippi has implemented some changes for the community such as The Mississippi Chronic Illness Coalition (MCIC) to help improve the amount of deaths caused by Heart disease. Its main focus is on community education, healthcare provider training, and the fight to improve cardiovascular health. This link provides more information on their plans to prevent heart disease:
+[MSDH Heart Disease Prevention Plan](https://msdh.ms.gov/msdhsite/_static/resources/3840.pdf). 
+
+## How Does Total Amount Of Deaths Reflect Onto Age Adjusted Death Rate?
+
+```{r echo = FALSE}
+#COMPARE DEATH AND AGE AJUSTED
+
+COMPARISON <- data %>%
+  select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
+  filter(Cause.Name !='All causes', Cause.Name != 'Cancer', Cause.Name != 'Heart disease', State == 'United States') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter(alpha = .5) + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000)) + 
+  labs(
+    x = 'Total Amount of Deaths',
+    y = 'Age Adjusted Death Rate',
+    title = 'Age Adjusted Death Rates Through All Diseases'
+  ) + coord_cartesian(xlim = c(0,169000))
+
+COMPARISON
+```
+
+When looking at all these graphs throughout the time, we can see the amount of deaths and the Age Adjusted Death Rate together. We see that through many of the death causes like CLRD, Stroke, Diabetes, Influeza and Pneumonia there has been a decrease throughout time. We see a huge decrease in the cause stroke also. Strokes can be caused if you have diabetes, it is an underlining of strokes because it can damage your blood vessels and cause your blood to cloth. We can see that diabetes has also decrease. Therefore these two are somewhat reflecting off of each other to an extent.  
+
+## A Closer Look Into Heart Disease and Cancer
+
+```{r echo = FALSE}
+
+
+COMPARISON.2 <- data %>%
+  select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
+  filter(Cause.Name == c('Cancer','Heart disease'), State == 'United States') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter(size = 2.5) + facet_wrap(~Cause.Name) + labs(
+    x = 'Total Deaths',
+    y = 'Age Adjusted Death Rate',
+    title = 'Age Adjusted Death Rate Decrease'
+  ) + theme(panel.spacing = unit(1, 'cm', data = NULL)) + scale_color_gradient(low = 'red', high = 'turquoise')
+
+COMPARISON.2
+
+```
+
+When we look at this data, we can notice that there has been a change in Heart Disease and Cancer throughout these years. When I searched it up a bit more, it says that there can be changes throughout the years due to better technology. Due to better technology, these diseases are faster to detect. Therefore the age gap between the amount of deaths is closing in. Creating a greater percentage for those who have an older population. While deaths may be high, this can be due to the population increasing over the time. 
+
+## A Closer Look Into Florida
+
+```{r echo = FALSE}
+FLORIDA_RATE <- data %>%
+  select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
+  filter(Cause.Name == "Alzheimer's disease", State == 'Florida') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000)) + 
+  labs(
+    x = 'Total Amount of Deaths',
+    y = 'Age Adjusted Death Rate',
+    title = "Age Adjusted Death Rates for Alzheimer's disease",
+    subtitle = 'In Florida'
+  ) + coord_cartesian(xlim = c(0,10000))
+
+FLORIDA_RATE
+```
+
+While presenting we were asked about Florida specifically, mainly about the age in Florida. We were not given ages, but we can look at the Age Adjusted Death Rate and see that the percentages have increased. Alzheimer's disease is mainly diagnosed on people of older age. (Ages 65+) This disease has had an increase in Florida, so yes we can say that older people do live in Florida. Before though, not many people. The Age Adjusted Death Rate didn't see in increase until 2011, therefore now there are probably more older people moving to Florida. 
+
+## LIMITATION
+
+This project has been very interesting and insightful experience to work on, though there are some limitations. I think it would've been better if our data also included ages. We think this would've helped a lot in some of the questions that we were receiving from people. Ages play a big roll into these diseases, we are given a bit by the Age Adjusted Death Rate but not to the fullest (Specifics on age range). I also think that it would've been nice to have the specific type of Cancer. We are given a more generalized name for Cancer, it is all in one category instead of being a general Cancer name and a specific Cancer name. Another limitation that led to less specificity in our data would be the "all causes" category. It was unknown what it consisted of and it would have bene helpful to have a clearer breakdown beyond just the 10 causes.
+
+## SUMMARY
+
+Through this project, we were able to gain an insight into the impact of each of these diseases and how they contribute to the mortality across every state. Regardless of the state, there was a high amount of heart disease and cancer deaths as the top two leading causes of death. Fortunately, there have been countless initiatives on a national and state level that have been implemented to prevent these diseases, or at the very least slow the rate in which they occur with early identification. We hope that this project encourages people to take action on managing their health, as many of these diseases can now be detected at a earlier state, thanks to advancements in technology.
