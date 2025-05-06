@@ -1,5 +1,6 @@
 ---
-title: "FINAL.PROJECT.REPORT.2025"
+title: 'Deaths in the United State Report'
+author: 'Angelica Gamboa and Gwendolyn Espinoza'
 output: html_document
 date: "2025-04-26"
 ---
@@ -11,11 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # INTRODUCTION
 
-- The data was gathered from:
-  - **National Center for Health Statistics (NCHS)** – *Leading Causes of Death in the U.S.*
-- The **NCHS dataset** includes:
-  - Mortality statistics across various U.S. states over multiple years
-  - *Excludes murder* from the listed causes of death
+- The data was gathered from **National Center for Health Statistics (NCHS)** – *Leading Causes of Death in the U.S.* This data gives us the top 10 most causes of deaths in the United States. We are given the data from every state in the United States and the timing is from 1999 to 2017. Through this data we are able to see the progression of the United States over time due to the amount of deaths in each year. 
 
 
 # QUESTIONS
@@ -33,6 +30,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(dplyr)
 library(usmap)
+library(scales)
 data <- read.csv("NCHS_-_Leading_Causes_of_Death__United_States (1).csv")
 ```
 
@@ -59,12 +57,12 @@ top_causes <- data %>%
 # Plotting causes of death
 ggplot(top_causes, aes(x = total_deaths, y = reorder(Cause.Name, total_deaths))) +
   geom_col(fill = 'purple3') +
-  labs(title = 'Top 10 Causes of Death in the U.S. Since 2001',
+  labs(title = 'Top 10 Causes of Death in the U.S. Since 1999',
        x = 'Total Deaths',
-       y = 'Cause of Death')
+       y = 'Cause of Death',
+       subtitle = 'CLRD stands for Chronic Lower Respiratory Diseases')
 ```
-
-CLRD stands for Chronic Lower Respiratory Diseases.
+This is the total summation of all Deaths from 1999 to 2017. We can see that there are many deaths due to Heart Disease and Cancer. The least amount of deaths being by suicide.  
 
 
 ## **Total Deaths in Each State**
@@ -133,6 +131,31 @@ PLOTTING_PERC <- BOTH_COMBINED %>% filter(Cause.Name != 'All causes')  %>%
 PLOTTING_PERC
 
 #PLOTTING_PERCENTAGES
+
+
+
+
+total_deaths <- data %>%
+  filter(Cause.Name == "All causes") %>%
+  group_by(State) %>%
+  summarise(Total_Deaths = sum(Deaths, na.rm = TRUE))
+
+cause_deaths <- data %>%
+  filter(Cause.Name != "All causes") %>%
+  group_by(State) %>%
+  summarize(Cause_Deaths = sum(Deaths, na.rm = TRUE))
+
+merged <- left_join(cause_deaths, total_deaths, by = "State") %>%
+  mutate(Proportion = 100 * Cause_Deaths / Total_Deaths)
+
+merged_map <- merged %>%
+  mutate(state = tolower(State)) %>%
+  select(state, Proportion)
+
+plot_usmap(data = merged_map, values = "Proportion", labels = FALSE) +
+  scale_fill_continuous(name = "Death Percentages", label = percent_format(scale = 1)) +
+  labs(title = "Total Cause Deaths over All Cause Deaths by State") +
+  theme(legend.position = "right")
 ```
 
 
@@ -411,17 +434,17 @@ ggplot(heart_disease_data, aes(x = as.factor(Year), y = reorder(State, -Age.adju
 
 COMPARISON <- data %>%
   select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
-  filter(Cause.Name != 'All causes', State == 'United States') %>%
-  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000)) + 
+  filter(Cause.Name !='All causes', Cause.Name != 'Cancer', Cause.Name != 'Heart disease', State == 'United States') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter(alpha = .5) + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000)) + 
   labs(
     x = 'Total Amount of Deaths',
     y = 'Age Adjusted Death Rate',
     title = 'Age Adjusted Death Rates Through All Diseases'
-  )
+  ) + coord_cartesian(xlim = c(0,169000))
 
 COMPARISON
 ```
-
+When looking at all these graphs throughout the time, we can see the amount of deaths and the Age Adjusted Death Rate together. We see that through many of the death causes like CLRD, Stroke, Diabetes, Influeza and Pneumonia there has been a decrease throughout time. We see a huge decrease in the cause stroke also. Strokes can be caused if you have diabetes, it is an underlining of strokes because it can damage your blood vessels and cause your blood to cloth. We can see that diabetes has also decrease. Therefore these two are somewhat reflecting off of each other to an extent.  
 
 ## A Closer Look Into Heart Disease and Cancer
 
@@ -442,4 +465,29 @@ COMPARISON.2
 ```
 
 When we look at this data, we can notice that there has been a change in Heart Disease and Cancer throughout these years. When I searched it up a bit more, it says that there can be changes throughout the years due to better technology. Due to better technology, these diseases are faster to detect. Therefore the age gap between the amount of deaths is closing in. Creating a greater percentage for those who have an older population. While deaths may be high, this can be due to the population increasing over the time. 
+
+## A Closer Look Into Florida
+
+```{r echo = FALSE}
+FLORIDA_RATE <- data %>%
+  select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
+  filter(Cause.Name == "Alzheimer's disease", State == 'Florida') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000)) + 
+  labs(
+    x = 'Total Amount of Deaths',
+    y = 'Age Adjusted Death Rate',
+    title = "Age Adjusted Death Rates for Alzheimer's disease",
+    subtitle = 'In Florida'
+  ) + coord_cartesian(xlim = c(0,10000))
+
+FLORIDA_RATE
+```
+While presenting we were asked about Florida specifically, mainly about the age in Florida. We were not given ages, but we can look at the Age Adjusted Death Rate and see that the percentages have increased. Alzheimer's disease is mainly diagnosed on people of older age. (Ages 65+) This disease has had an increase in Florida, so yes we can say that older people do live in Florida. Before though, not many people. The Age Adjusted Death Rate didn't see in increase until 2011, therefore now there are probably more older people moving to Florida. 
+
+## LIMITATION
+
+This project has been very interesting to work on. There are some limitations on it. I think it would've been better if our data also included ages. We think this would've helped a lot in some of the questions that we were receiving from people. Ages play a big roll into these diseases, we are given a bit by the Age Adjusted Death Rate but not to the fullest (Specifics on age range). I also think that it would've been nice to have the specific type of Cancer. We are given a more generalized name for Cancer, it is all in one category instead of being a general Cancer name and a specific Cancer name. 
+
+## SUMMARY
+
 
