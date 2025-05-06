@@ -501,9 +501,3 @@ This project has been very interesting and insightful experience to work on, tho
 ## SUMMARY
 
 Through this project, we were able to gain an insight into the impact of each of these diseases and how they contribute to the mortality across every state. Regardless of the state, there was a high amount of heart disease and cancer deaths as the top two leading causes of death. Fortunately, there have been countless initiatives on a national and state level that have been implemented to prevent these diseases, or at the very least slow the rate in which they occur with early identification. We hope that this project encourages people to take action on managing their health, as many of these diseases can now be detected at a earlier state, thanks to advancements in technology.
- 
-
-## SUMMARY
-
-Through this project, we were able to see each of these diseases, and how many people die in every state. No matter what state it was, it had a high amount of heart disease and cancer deaths. There are many movements that the United States and your state have provided to prevent these disease. (or atleast help identify them)
-We hope through this people can take action on their own health, because many of these disease can now be identified, especially now that technology has grown as the time comes. 
