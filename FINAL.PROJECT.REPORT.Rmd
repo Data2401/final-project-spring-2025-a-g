@@ -27,7 +27,8 @@ knitr::opts_chunk$set(echo = TRUE)
 6. We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
 7. What is the death rate by cause and state?
 8. What is the age-adjusted death rate for heart disease?
-
+9. Is Florida mainly older people?
+10. What is the comparison between deaths and age adjusted death rate?
 
 ```{r echo = FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -102,6 +103,7 @@ print(TOTAL_DEATHS_BY_STATE)
 
 The total deaths through every state from 1999 to 2017. California had the most amount of deaths, this can be due to the high population in California. Then we see that Florida and Texas follow up behind California. Even though Florida has a smaller population than Texas, the amount of deaths overpassed Texas' deaths. 
 
+## Each Disease Percentages in Every State
 
 ```{r echo = FALSE}
 
@@ -130,7 +132,9 @@ PLOTTING_PERC <- BOTH_COMBINED %>% filter(Cause.Name != 'All causes')  %>%
   ggplot(aes(x = Cause.Name, y = State, fill = `Percentage of Deaths`)) +
   geom_tile(color = "white") +
   scale_fill_viridis_c(option = "C") +
-  labs(title = "Heatmap of Death Percentages by Cause and State", x = "Cause", y = "State") +
+  labs(title = "Each Disease Percentage in Every State",
+       x = "Cause Name",
+       y = "State") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_discrete(expand = expansion(mult = c(.005, 0.005))) + theme(axis.text.y = element_text(size = 8))
 
@@ -139,30 +143,6 @@ PLOTTING_PERC
 
 #PLOTTING_PERCENTAGES
 
-
-
-
-total_deaths <- data %>%
-  filter(Cause.Name == "All causes") %>%
-  group_by(State) %>%
-  summarise(Total_Deaths = sum(Deaths, na.rm = TRUE))
-
-cause_deaths <- data %>%
-  filter(Cause.Name != "All causes") %>%
-  group_by(State) %>%
-  summarize(Cause_Deaths = sum(Deaths, na.rm = TRUE))
-
-merged <- left_join(cause_deaths, total_deaths, by = "State") %>%
-  mutate(Proportion = 100 * Cause_Deaths / Total_Deaths)
-
-merged_map <- merged %>%
-  mutate(state = tolower(State)) %>%
-  select(state, Proportion)
-
-plot_usmap(data = merged_map, values = "Proportion", labels = FALSE) +
-  scale_fill_continuous(name = "Death Percentages", label = percent_format(scale = 1)) +
-  labs(title = "Total Cause Deaths over All Cause Deaths by State") +
-  theme(legend.position = "right")
 ```
 
 This heatmap is representing the percentage that each disease accounts for in each state. This percentage is each of these diseases total amount of deaths over the total amount of deaths. We can see that in some states there is a higher percentage of people dying from a certain disease than others. For example we see a higher percentage in unintentional injuries in Alaska than any other state. We can also that heart disease is a higher cause of death in New York.
@@ -412,7 +392,7 @@ p <- data %>%   filter(State !="United States", Cause.Name != "All causes") %>%
 ggplotly(p)
 ```
 
-
+This is representing the average age adjusted death rate of these diseases and their causes. We can see that the average of all of these are a presentation of what each of these diseases consist of. We can see that in some diseases the rate is more alike such as diabetes, Alzheimer's, and CLDR. Then we see for Heart Disease and Cancer the plots are more scattered. Some states have a higher rate than others. This can be because of age or people's health habits. 
 
 ```{r echo=FALSE}
 library(dplyr)
@@ -438,7 +418,7 @@ ggplot(heart_disease_data, aes(x = as.factor(Year), y = reorder(State, -Age.adju
 
 This represents the Death Rate in each of the states in the United States for the cause Heart Disease. As we can see Mississippi has the highest death rate through all the years. Mississippi has made changes for the community such as The Mississippi Chronic Illness Coalition (MCIC) to help improve the amount of deaths due to Heart disease. There is a whole plan of trying to prevent Heart Disease throughout these years. (https://msdh.ms.gov/msdhsite/_static/resources/3840.pdf, MSDH) This link provides more information on their plans to prevent heart disease.
 
-## How do the Amount of Deaths and Age Adjusted Death Rate Compare?
+## How Does Total Amount Of Deaths Reflect Onto Age Adjusted Death Rate?
 
 ```{r echo = FALSE}
 #COMPARE DEATH AND AGE AJUSTED

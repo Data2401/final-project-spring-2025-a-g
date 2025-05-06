@@ -31,6 +31,8 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 6. We know the adjusted death rate for the data, but what does the rate look like when we subtract "all causes'?
 7. What is the death rate by cause and state?
 8. What is the age-adjusted death rate for heart disease?
+9. Is Florida mainly older people?
+10. What is the comparison between deaths and age adjusted death rate?
 
 
 ```{r echo = FALSE, warning=FALSE, message=FALSE}
@@ -451,4 +453,21 @@ COMPARISON.2
 ```
 
 
+---
 
+## A Closer Look Into Florida
+
+```{r echo = FALSE}
+FLORIDA_RATE <- data %>%
+  select(Year, Age.adjusted.Death.Rate, Deaths,Cause.Name,State) %>%
+  filter(Cause.Name == "Alzheimer's disease", State == 'Florida') %>%
+  ggplot(aes(x = Deaths, y = Age.adjusted.Death.Rate, color = Year)) + geom_jitter() + facet_wrap(~Cause.Name) + coord_cartesian(xlim = c(0, 800000)) + 
+  labs(
+    x = 'Total Amount of Deaths',
+    y = 'Age Adjusted Death Rate',
+    title = "Age Adjusted Death Rates for Alzheimer's disease",
+    subtitle = 'In Florida'
+  ) + coord_cartesian(xlim = c(0,10000))
+
+FLORIDA_RATE
+```
